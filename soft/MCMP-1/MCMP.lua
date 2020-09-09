@@ -9,15 +9,15 @@ local tapeInfo = {
 	titlesTableLength = 0,
 	titlesTable = {},
 	titleItem = {
-		"Title",		--name of the track
-		0,				--start position
-		0,				--end position
-		1				--playback speed
+		t 	= "Title",		--name of the track
+		sp 	= 0,				--start position
+		ep 	= 0,				--end position
+		s 	= 1				--playback speed
 	}
 }
 
 function ConcatinateBytes(bytes)
-	local concatNum = 1
+	local concatNum = 0
 	local secondi = #bytes
 	for _, val in pairs(bytes) do
 		concatNum = concatNum|(val<<(secondi*8-8))
@@ -56,7 +56,7 @@ function CheckTableStructure(verifiableTable, templateTable)
 end
 
 function SeekToAbsolutlyPosition(position)
-	td.seek(position - td.getPotsition())
+	td.seek(position - td.getPosition())
 end
 
 function InitTape()
@@ -84,7 +84,7 @@ function InitTape()
 			--print title table
 			io.stdout:write("track title, start position, end position, playback speed\n")
 			for key, val in pairs(tapeInfo.titlesTable) do
-				io.stdout:write(val[1]..","..val[2]..","..val[3]..","..val[4].."\n")
+				io.stdout:write(val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
 			end
 		else
 			io.stderr:write("Invalid tape: format vertion "..tostring(tapeInfo["formatVersion"]).." not support\n")
