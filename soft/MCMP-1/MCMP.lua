@@ -42,6 +42,19 @@ function ReadTable()
 	return ser.unserialize(ReadStrig(tapeInfo.titlesTableLength))
 end
 
+function CheckTableStructure(verifiableTable, templateTable)
+	verifiableTable = setmetatable(verifiableTable, {__index = templateTable})
+	local VTNew = {}
+	local wasChanged = false
+	for key, val in pairs(templateTable) do
+		if not rawget(verifiableTable, key) then
+			wasChanged = true
+		end
+		VTNew[key] = verifiableTable[key]
+	end
+	return VTNew, wasChanged
+end
+
 function SeekToAbsolutlyPosition(position)
 	td.seek(position - td.getPotsition())
 end
