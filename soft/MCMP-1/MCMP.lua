@@ -59,6 +59,13 @@ function SeekToAbsolutlyPosition(position)
 	td.seek(position - td.getPosition())
 end
 
+function PrintTitlesTable()
+	io.stdout:write("track title, start position, end position, playback speed\n")
+	for key, val in pairs(tapeInfo.titlesTable) do
+		io.stdout:write(val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
+	end
+end
+
 function InitTape()
 	Rewind()
 	
@@ -81,11 +88,6 @@ function InitTape()
 				return
 			end
 			tapeInfo.titlesTable = table
-			--print title table
-			io.stdout:write("track title, start position, end position, playback speed\n")
-			for key, val in pairs(tapeInfo.titlesTable) do
-				io.stdout:write(val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
-			end
 		else
 			io.stderr:write("Invalid tape: format vertion "..tostring(tapeInfo["formatVersion"]).." not support\n")
 		end
@@ -95,3 +97,4 @@ function InitTape()
 end
 
 InitTape()
+PrintTitlesTable()
