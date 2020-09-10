@@ -94,7 +94,13 @@ function InitTape()
 				io.stderr:write("Error parse titles table: "..status)
 				return
 			end
-			tapeInfo.titlesTable = table
+
+			--correct table structure
+			local newTable = {}
+			for key, val in pairs(table) do
+				newTable[key] = CheckTableStructure(val, tapeInfo.titleItem)
+			end
+			tapeInfo.titlesTable = newTable
 		else
 			io.stderr:write("Invalid tape: format vertion "..tostring(tapeInfo["formatVersion"]).." not support\n")
 		end
