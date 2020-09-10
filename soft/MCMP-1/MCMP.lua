@@ -16,6 +16,7 @@ local tapeInfo = {
 	}
 }
 
+---@param bytes table
 function ConcatinateBytes(bytes)
 	local concatNum = 0
 	local secondi = #bytes
@@ -26,10 +27,12 @@ function ConcatinateBytes(bytes)
 	return concatNum
 end
 
+---@param length integer
 function ReadBytes(length)
 	return {string.byte(td.read(length), 1, length)}
 end
 
+---@param length integer
 function ReadStrig(length)
 	return td.read(length)
 end
@@ -42,6 +45,8 @@ function ReadTable()
 	return ser.unserialize(ReadStrig(tapeInfo.titlesTableLength))
 end
 
+---@param verifiableTable table
+---@param templateTable table
 function CheckTableStructure(verifiableTable, templateTable)
 	verifiableTable = setmetatable(verifiableTable, {__index = templateTable})
 	local VTNew = {}
@@ -55,6 +60,7 @@ function CheckTableStructure(verifiableTable, templateTable)
 	return VTNew, wasChanged
 end
 
+---@param position integer
 function SeekToAbsolutlyPosition(position)
 	td.seek(position - td.getPosition())
 end
@@ -62,6 +68,7 @@ end
 function PrintTitlesTable()
 	io.stdout:write("track title, start position, end position, playback speed\n")
 	for key, val in pairs(tapeInfo.titlesTable) do
+		val = CheckTableStructure(val, tapeInfo.titleItem)
 		io.stdout:write(val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
 	end
 end
