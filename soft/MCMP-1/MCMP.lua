@@ -1,8 +1,8 @@
-local cmp = require("component")
-local ser = require("serialization")
-local td = cmp.tape_drive
-local formatName = "MCMP"
-local formatVersion = 1
+local Cmp = require("component")
+local Ser = require("serialization")
+local TD = Cmp.tape_drive
+local FormatName = "MCMP"
+local FormatVersion = 1
 local tapeInfo = {
 	formatName = "",
 	formatVersion = 0,
@@ -17,7 +17,7 @@ local tapeInfo = {
 }
 
 ---@param bytes table
-function ConcatinateBytes(bytes)
+local function ConcatinateBytes(bytes)
 	local concatNum = 0
 	local secondi = #bytes
 	for _, val in pairs(bytes) do
@@ -28,26 +28,26 @@ function ConcatinateBytes(bytes)
 end
 
 ---@param length integer
-function ReadBytes(length)
-	return {string.byte(td.read(length), 1, length)}
+local function ReadBytes(length)
+	return {string.byte(TD.read(length), 1, length)}
 end
 
 ---@param length integer
-function ReadStrig(length)
-	return td.read(length)
+local function ReadStrig(length)
+	return TD.read(length)
 end
 
-function Rewind()
-	td.seek(-math.huge)
+local function Rewind()
+	TD.seek(-math.huge)
 end
 
-function ReadTable()
-	return ser.unserialize(ReadStrig(tapeInfo.titlesTableLength))
+local function ReadTable()
+	return Ser.unserialize(ReadStrig(tapeInfo.titlesTableLength))
 end
 
 ---@param verifiableTable table
 ---@param templateTable table
-function CheckTableStructure(verifiableTable, templateTable)
+local function CheckTableStructure(verifiableTable, templateTable)
 	verifiableTable = setmetatable(verifiableTable, {__index = templateTable})
 	local VTNew = {}
 	local wasChanged = false
@@ -61,11 +61,11 @@ function CheckTableStructure(verifiableTable, templateTable)
 end
 
 ---@param position integer
-function SeekToAbsolutlyPosition(position)
-	td.seek(position - td.getPosition())
+local function SeekToAbsolutlyPosition(position)
+	TD.seek(position - TD.getPosition())
 end
 
-function PrintTitlesTable()
+local function PrintTitlesTable()
 	io.stdout:write("track title, start position, end position, playback speed\n")
 	for key, val in pairs(tapeInfo.titlesTable) do
 		val = CheckTableStructure(val, tapeInfo.titleItem)
@@ -73,17 +73,17 @@ function PrintTitlesTable()
 	end
 end
 
-function InitTape()
+local function InitTape()
 	Rewind()
 	
 	--read info data from tape
-	tapeInfo["formatName"] = td.read(#formatName)
-	tapeInfo["formatVersion"] = td.read()
+	tapeInfo["formatName"] = TD.read(#FormatName)
+	tapeInfo["formatVersion"] = TD.read()
 	tapeInfo.titlesTableLength = ConcatinateBytes(ReadBytes(2))
 	
 	--check on valid tape
-	if tapeInfo["formatName"] == formatName then
-		if tapeInfo["formatVersion"] == formatVersion then
+	if tapeInfo["formatName"] == FormatName then
+		if tapeInfo["formatVersion"] == FormatVersion then
 			--print base info about table
 			io.stdout:write(tapeInfo["formatName"].." ver: "..tostring(tapeInfo["formatVersion"]).."\n")
 			io.stdout:write("Titles table length: "..tostring(tapeInfo.titlesTableLength).."\n")
