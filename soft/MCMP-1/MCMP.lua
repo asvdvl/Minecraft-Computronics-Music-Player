@@ -10,11 +10,23 @@ local tapeInfo = {
 	titlesTable = {},
 	titleItem = {
 		t 	= "Title",		--name of the track
-		sp 	= 0,				--start position
-		ep 	= 0,				--end position
+		sp 	= -1,				--start position
+		ep 	= -1,				--end position
 		s 	= 1				--playback speed
 	}
 }
+local Pointers = {
+	formatName = 1,	--1
+	formatVersion = 0, --5 
+	titlesTableLength = 0, --6
+	titlesTable = 0 --8
+}
+
+local function InitPointers()
+	Pointers.formatVersion = Pointers.formatName + string.len(FormatName)
+	Pointers.titlesTableLength = Pointers.formatVersion + 1
+	Pointers.titlesTable = Pointers.titlesTableLength + 2
+end
 
 ---@param bytes table
 local function ConcatinateBytes(bytes)
@@ -74,6 +86,7 @@ local function PrintTitlesTable()
 end
 
 local function InitTape()
+	InitPointers()
 	Rewind()
 	
 	--read info data from tape
