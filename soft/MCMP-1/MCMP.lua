@@ -39,6 +39,26 @@ local function ConcatinateBytes(bytes)
 	return concatNum
 end
 
+---@param num integer
+local function SplitIntoBytes(num)
+	--Counting bytes
+	local numCount = num
+	local bytesCount = 0
+	while numCount ~= 0 do
+		numCount = numCount >> 8
+		bytesCount = bytesCount + 1;
+	end
+
+	--Splitting
+	local bytes = {}
+	for i = bytesCount, 1, -1 do
+		bytes[i] = num & 0xFF
+		num = num >> 8
+	end
+
+	return bytes
+end
+
 ---@param position integer
 local function SeekToAbsolutlyPosition(position)
 	TD.seek(position - TD.getPosition())
