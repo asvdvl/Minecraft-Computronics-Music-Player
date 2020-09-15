@@ -1,8 +1,8 @@
-local Cmp = require("component")
-local Ser = require("serialization")
-local TD = Cmp.tape_drive
-local FormatName = "MCMP"
-local FormatVersion = 1
+local cmp = require("component")
+local ser = require("serialization")
+local td = cmp.tape_drive
+local formatName = "MCMP"
+local formatVersion = 1
 local tapeInfo = {
 	formatName = "",
 	formatVersion = 0,
@@ -15,21 +15,21 @@ local tapeInfo = {
 		s 	= 1				--playback speed
 	}
 }
-local Pointers = {
+local pointers = {
 	formatName = 0,	--0
 	formatVersion = 0, --4 
 	titlesTableLength = 0, --5
 	titlesTable = 0 --7
 }
 
-local function InitPointers()
-	Pointers.formatVersion = Pointers.formatName + string.len(FormatName)
-	Pointers.titlesTableLength = Pointers.formatVersion + 1
-	Pointers.titlesTable = Pointers.titlesTableLength + 2
+local function initPointers()
+	pointers.formatVersion = pointers.formatName + string.len(formatName)
+	pointers.titlesTableLength = pointers.formatVersion + 1
+	pointers.titlesTable = pointers.titlesTableLength + 2
 end
 
 ---@param bytes table
-local function ConcatinateBytes(bytes)
+local function concatinateBytes(bytes)
 	local concatNum = 0
 	local secondi = #bytes
 	for _, val in pairs(bytes) do
@@ -40,7 +40,7 @@ local function ConcatinateBytes(bytes)
 end
 
 ---@param num integer
-local function SplitIntoBytes(num)
+local function splitIntoBytes(num)
 	--Counting bytes
 	local numCount = num
 	local bytesCount = 0
@@ -60,38 +60,55 @@ local function SplitIntoBytes(num)
 end
 
 ---@param position integer
-local function SeekToAbsolutlyPosition(position)
-	TD.seek(position - TD.getPosition())
+local function seekToAbsolutlyPosition(position)
+	td.seek(position - td.getPosition())
 end
 
 ---@param length integer
----@param AbsPos integer
+---@param absPos integer
 ---note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
-local function SeekAndRead(length, AbsPos)
-	if AbsPos then
-		checkArg(2, AbsPos, "number")
-		SeekToAbsolutlyPosition(AbsPos)
+local function seekAndRead(length, absPos)
+	if absPos then
+		checkArg(2, absPos, "number")
+		seekToAbsolutlyPosition(absPos)
 	end
-	return TD.read(length)
+	return td.read(length)
+end
+
+local function splitByChunk(text, chunkSize)
+	local chunks = {}
+	for i = 1, math.ceil(text:len() / chunkSize) do
+		chunks[i] = text:sub(1, chunkSize)
+		text = text:sub(chunkSize + 1, #text)
+	end
+	return chunks
+end
+
+local function tapeWriteString(textToWrite, absPos)
+	if absPos then
+		checkArg(2, absPos, "number")
+		seekToAbsolutlyPosition(absPos)
+	end
+
 end
 
 ---@param length integer
-local function ReadBytes(length, AbsPos)
-	return {string.byte(SeekAndRead(length, AbsPos), 1, length)}
+local function readBytes(length, absPos)
+	return {string.byte(seekAndRead(length, absPos), 1, length)}
 end
 
 ---@param length integer
-local function ReadStrig(length, AbsPos)
-	return SeekAndRead(length, AbsPos)
+local function readStrig(length, absPos)
+	return seekAndRead(length, absPos)
 end
 
-local function ReadTable(AbsPos)
-	return Ser.unserialize(ReadStrig(tapeInfo.titlesTableLength, AbsPos))
+local function readTable(absPos)
+	return ser.unserialize(readStrig(tapeInfo.titlesTableLength, absPos))
 end
 
 ---@param verifiableTable table
 ---@param templateTable table
-local function CheckTableStructure(verifiableTable, templateTable)
+local function checkTableStructure(verifiableTable, templateTable)
 	verifiableTable = setmetatable(verifiableTable, {__index = templateTable})
 	local VTNew = {}
 	local wasChanged = false
@@ -104,31 +121,31 @@ local function CheckTableStructure(verifiableTable, templateTable)
 	return VTNew, wasChanged
 end
 
-local function PrintTitlesTable()
+function PrintTitlesTable()
 	io.stdout:write("track title, start position, end position, playback speed\n")
 	for key, val in pairs(tapeInfo.titlesTable) do
-		val = CheckTableStructure(val, tapeInfo.titleItem)
+		val = checkTableStructure(val, tapeInfo.titleItem)
 		io.stdout:write(val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
 	end
 end
 
-local function InitTape()
-	InitPointers()
+function InitTape()
+	initPointers()
 
 	--read info data from tape
-	tapeInfo["formatName"] = SeekAndRead(#FormatName, Pointers.formatName)
-	tapeInfo["formatVersion"] = SeekAndRead(nil, Pointers.formatVersion)
-	tapeInfo.titlesTableLength = ConcatinateBytes(ReadBytes(2, Pointers.titlesTableLength))
-	
+	tapeInfo["formatName"] = seekAndRead(#formatName, pointers.formatName)
+	tapeInfo["formatVersion"] = seekAndRead(nil, pointers.formatVersion)
+	tapeInfo.titlesTableLength = concatinateBytes(readBytes(2, pointers.titlesTableLength))
+
 	--check on valid tape
-	if tapeInfo["formatName"] == FormatName then
-		if tapeInfo["formatVersion"] == FormatVersion then
+	if tapeInfo["formatName"] == formatName then
+		if tapeInfo["formatVersion"] == formatVersion then
 			--print base info about table
 			io.stdout:write(tapeInfo["formatName"].." ver: "..tostring(tapeInfo["formatVersion"]).."\n")
 			io.stdout:write("Titles table length: "..tostring(tapeInfo.titlesTableLength).."\n")
-			
+
 			--try to parse table
-			local table, status = ReadTable(Pointers.titlesTable)
+			local table, status = readTable(pointers.titlesTable)
 			if status then
 				io.stderr:write("Error parse titles table: "..status)
 				return
@@ -137,7 +154,7 @@ local function InitTape()
 			--correct table structure
 			local newTable = {}
 			for key, val in pairs(table) do
-				newTable[key] = CheckTableStructure(val, tapeInfo.titleItem)
+				newTable[key] = checkTableStructure(val, tapeInfo.titleItem)
 			end
 			tapeInfo.titlesTable = newTable
 		else
