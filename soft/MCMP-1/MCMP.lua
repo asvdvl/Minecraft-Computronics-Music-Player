@@ -90,14 +90,19 @@ local function splitByChunk(text, chunkSize)
 	return chunks
 end
 
----@param textToWrite string
+---@param textToWrite string number
 ---@param absPos integer
-local function tapeWriteString(textToWrite, absPos)
+local function seekAndWrite(textToWrite, absPos)
+	checkArg(1, textToWrite, "string", "number")
 	if absPos then
 		checkArg(2, absPos, "number")
 		seekToAbsolutlyPosition(absPos)
 	end
 
+	local tapeWrite = splitByChunk(textToWrite, 8192)
+	for i = 1, #tapeWrite do
+		td.write(tapeWrite[i])
+	end
 end
 
 ---@param length integer
