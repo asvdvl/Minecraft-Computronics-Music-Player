@@ -29,6 +29,7 @@ local function initPointers()
 end
 
 ---@param bytes table
+---return integer
 local function concatinateBytes(bytes)
 	local concatNum = 0
 	local secondi = #bytes
@@ -40,6 +41,7 @@ local function concatinateBytes(bytes)
 end
 
 ---@param num integer
+---return table of bytes
 local function splitIntoBytes(num)
 	--Counting bytes
 	local numCount = num
@@ -66,6 +68,7 @@ end
 
 ---@param length integer
 ---@param absPos integer
+---return string or integer
 ---note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
 local function seekAndRead(length, absPos)
 	if absPos then
@@ -75,6 +78,9 @@ local function seekAndRead(length, absPos)
 	return td.read(length)
 end
 
+---@param text string
+---@param chunkSize integer
+---return table of chunks
 local function splitByChunk(text, chunkSize)
 	local chunks = {}
 	for i = 1, math.ceil(text:len() / chunkSize) do
@@ -84,6 +90,8 @@ local function splitByChunk(text, chunkSize)
 	return chunks
 end
 
+---@param textToWrite string
+---@param absPos integer
 local function tapeWriteString(textToWrite, absPos)
 	if absPos then
 		checkArg(2, absPos, "number")
@@ -93,32 +101,31 @@ local function tapeWriteString(textToWrite, absPos)
 end
 
 ---@param length integer
+---return table of bytes
 local function readBytes(length, absPos)
 	return {string.byte(seekAndRead(length, absPos), 1, length)}
 end
 
----@param length integer
-local function readStrig(length, absPos)
-	return seekAndRead(length, absPos)
-end
-
+---@param absPos integer
+---return table
 local function readTable(absPos)
-	return ser.unserialize(readStrig(tapeInfo.titlesTableLength, absPos))
+	return ser.unserialize(seekAndRead(tapeInfo.titlesTableLength, absPos))
 end
 
 ---@param verifiableTable table
 ---@param templateTable table
+---return table new tables and boolean 
 local function checkTableStructure(verifiableTable, templateTable)
 	verifiableTable = setmetatable(verifiableTable, {__index = templateTable})
-	local VTNew = {}
+	local virTabNew = {}
 	local wasChanged = false
 	for key, val in pairs(templateTable) do
 		if not rawget(verifiableTable, key) then
 			wasChanged = true
 		end
-		VTNew[key] = verifiableTable[key]
+		virTabNew[key] = verifiableTable[key]
 	end
-	return VTNew, wasChanged
+	return virTabNew, wasChanged
 end
 
 function PrintTitlesTable()
