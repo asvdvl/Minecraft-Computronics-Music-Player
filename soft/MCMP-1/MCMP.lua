@@ -19,14 +19,14 @@ local tapeInfo = {
 local pointers = {
 	formatName = 0,	--0
 	formatVersion = 0, --4 
-	titlesTableLengthIndicator = 0, --5
+	titleLenghtIndicatorLength = 0, --5
 	titlesTable = 0 --7
 }
 
 local function initPointers()
 	pointers.formatVersion = pointers.formatName + string.len(formatName)
-	pointers.titlesTableLengthIndicator = pointers.formatVersion + 1
-	pointers.titlesTable = pointers.titlesTableLengthIndicator + 2
+	pointers.titleLenghtIndicatorLength = pointers.formatVersion + 1
+	pointers.titlesTable = pointers.titleLenghtIndicatorLength + 2
 end
 
 ---@param bytes table
@@ -52,14 +52,19 @@ local function concatinateStrings(strings)
 end
 
 ---@param num integer
+---@param length integer
 ---return table of bytes
-local function splitIntoBytes(num)
+local function splitIntoBytes(num, length)
 	--Counting bytes
-	local numCount = num
 	local bytesCount = 0
-	while numCount ~= 0 do
-		numCount = numCount >> 8
-		bytesCount = bytesCount + 1;
+	if not length then
+		local numCount = num
+		while numCount ~= 0 do
+			numCount = numCount >> 8
+			bytesCount = bytesCount + 1;
+		end
+	else
+		bytesCount = length
 	end
 
 	--Splitting
@@ -119,7 +124,8 @@ local function seekAndWrite(varToWrite, absPos)
 end
 
 local function saveTitlesTable()
-	
+	--write titleLenghtIndicator
+	seekAndWrite(splitIntoBytes(tapeInfo.titlesTableLength, titleLenghtIndicatorLength), pointers.titleLenghtIndicatorLength)
 end
 
 ---@param length integer
@@ -176,7 +182,7 @@ function InitTape()
 	--read info data from tape
 	tapeInfo["formatName"] = seekAndRead(#formatName, pointers.formatName)
 	tapeInfo["formatVersion"] = seekAndRead(nil, pointers.formatVersion)
-	tapeInfo.titlesTableLength = concatinateBytes(readBytes(titleLenghtIndicatorLength, pointers.titlesTableLengthIndicator))
+	tapeInfo.titlesTableLength = concatinateBytes(readBytes(titleLenghtIndicatorLength, pointers.titleLenghtIndicatorLength))
 
 	--check on valid tape
 	if tapeInfo["formatName"] == formatName then
