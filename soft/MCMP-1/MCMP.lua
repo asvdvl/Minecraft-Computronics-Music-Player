@@ -89,18 +89,32 @@ local function splitByChunk(text, chunkSize)
 	return chunks
 end
 
----@param textToWrite string number
+---@param varToWrite string number table
 ---@param absPos integer
-local function seekAndWrite(textToWrite, absPos)
-	checkArg(1, textToWrite, "string", "number")
+local function seekAndWrite(varToWrite, absPos)
+	checkArg(1, varToWrite, "string", "number", "table")
 	if absPos then
 		checkArg(2, absPos, "number")
 		seekToAbsolutlyPosition(absPos)
 	end
 
-	local tapeWrite = splitByChunk(textToWrite, 8192)
-	for i = 1, #tapeWrite do
-		td.write(tapeWrite[i])
+	local tapeWrite = {}
+	if type(varToWrite) == "table" then
+		tapeWrite = varToWrite
+	elseif type(varToWrite) == "string" then
+		tapeWrite = splitByChunk(varToWrite, 8192)
+	elseif type(varToWrite) == "number" then
+		tapeWrite = {varToWrite}
+	else
+		io.stderr:write("I don't know what happened, but the universe may collapse soon. "..
+			"Because this condition doesn't have to be true. "..
+			"Don't blame yourself for the death of all living things. "..
+			"Well, before you panic, I advise you to check your computer for problems. "..
+			"I think your processor is not working properly.")
+	end
+
+	for _, val in pairs(tapeWrite) do
+		td.write(val)
 	end
 end
 
