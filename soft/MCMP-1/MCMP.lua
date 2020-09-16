@@ -3,6 +3,7 @@ local ser = require("serialization")
 local td = cmp.tape_drive
 local formatName = "MCMP"
 local formatVersion = 1
+local titleLenghtIndicatorLength = 2
 local tapeInfo = {
 	formatName = "",
 	formatVersion = 0,
@@ -18,14 +19,14 @@ local tapeInfo = {
 local pointers = {
 	formatName = 0,	--0
 	formatVersion = 0, --4 
-	titlesTableLength = 0, --5
+	titlesTableLengthIndicator = 0, --5
 	titlesTable = 0 --7
 }
 
 local function initPointers()
 	pointers.formatVersion = pointers.formatName + string.len(formatName)
-	pointers.titlesTableLength = pointers.formatVersion + 1
-	pointers.titlesTable = pointers.titlesTableLength + 2
+	pointers.titlesTableLengthIndicator = pointers.formatVersion + 1
+	pointers.titlesTable = pointers.titlesTableLengthIndicator + 2
 end
 
 ---@param bytes table
@@ -38,6 +39,16 @@ local function concatinateBytes(bytes)
 		secondi = secondi - 1
 	end
 	return concatNum
+end
+
+---@param strings table
+---return string
+local function concatinateStrings(strings)
+	local concatStr = ""
+	for _, val in pairs(strings) do
+		concatStr = concatStr..val
+	end
+	return concatStr
 end
 
 ---@param num integer
@@ -66,18 +77,6 @@ local function seekToAbsolutlyPosition(position)
 	td.seek(position - td.getPosition())
 end
 
----@param length integer
----@param absPos integer
----return string or integer
----note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
-local function seekAndRead(length, absPos)
-	if absPos then
-		checkArg(2, absPos, "number")
-		seekToAbsolutlyPosition(absPos)
-	end
-	return td.read(length)
-end
-
 ---@param text string
 ---@param chunkSize integer
 ---return table of chunks
@@ -103,6 +102,22 @@ local function seekAndWrite(textToWrite, absPos)
 	for i = 1, #tapeWrite do
 		td.write(tapeWrite[i])
 	end
+end
+
+local function saveTitlesTable()
+	
+end
+
+---@param length integer
+---@param absPos integer
+---return string or integer
+---note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
+local function seekAndRead(length, absPos)
+	if absPos then
+		checkArg(2, absPos, "number")
+		seekToAbsolutlyPosition(absPos)
+	end
+	return td.read(length)
 end
 
 ---@param length integer
@@ -147,7 +162,7 @@ function InitTape()
 	--read info data from tape
 	tapeInfo["formatName"] = seekAndRead(#formatName, pointers.formatName)
 	tapeInfo["formatVersion"] = seekAndRead(nil, pointers.formatVersion)
-	tapeInfo.titlesTableLength = concatinateBytes(readBytes(2, pointers.titlesTableLength))
+	tapeInfo.titlesTableLength = concatinateBytes(readBytes(titleLenghtIndicatorLength, pointers.titlesTableLengthIndicator))
 
 	--check on valid tape
 	if tapeInfo["formatName"] == formatName then
