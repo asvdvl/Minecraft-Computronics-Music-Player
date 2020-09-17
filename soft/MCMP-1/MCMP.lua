@@ -161,7 +161,7 @@ end
 
 ---@param verifiableTable table
 ---@param templateTable table
----return table new tables and boolean 
+---return table new table and boolean 
 local function checkTableStructure(verifiableTable, templateTable)
 	verifiableTable = setmetatable(verifiableTable, {__index = templateTable})
 	local virTabNew = {}
@@ -173,6 +173,12 @@ local function checkTableStructure(verifiableTable, templateTable)
 		virTabNew[key] = verifiableTable[key]
 	end
 	return virTabNew, wasChanged
+end
+
+---@param newTitleItem table
+local function addNewTitle(newTitleItem)
+	newTitleItem = checkTableStructure(newTitleItem, tapeInfo.titleItem)
+	table.insert(tapeInfo.titlesTable, newTitleItem)
 end
 
 function PrintTitlesTable()
