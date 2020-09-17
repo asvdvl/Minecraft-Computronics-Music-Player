@@ -124,8 +124,15 @@ local function seekAndWrite(varToWrite, absPos)
 end
 
 local function saveTitlesTable()
+	--prepairing
+	local serialized = ser.serialize(tapeInfo.titlesTable)
+	tapeInfo.titlesTableLength = #serialized
+
 	--write titleLenghtIndicator
 	seekAndWrite(splitIntoBytes(tapeInfo.titlesTableLength, titleLenghtIndicatorLength), pointers.titleLenghtIndicatorLength)
+
+	--write titlesTable
+	seekAndWrite(serialized, pointers.titlesTable)
 end
 
 ---@param length integer
