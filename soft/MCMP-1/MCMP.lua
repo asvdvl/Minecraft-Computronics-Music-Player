@@ -1,5 +1,6 @@
 local cmp = require("component")
 local ser = require("serialization")
+local shell = require("shell")
 local td = cmp.tape_drive
 local formatName = "MCMP"
 local formatVersion = 1
@@ -225,5 +226,73 @@ function InitTape()
 	end
 end
 
+--user interface
 InitTape()
-PrintTitlesTable()
+
+local function printUsage()
+	io.stdout:write(
+	"Usage:\n"..
+	"`print` print titles and exit\n"..
+	"`add <title name> <start pos in bytes> <end pos in bytes> <play speed>` add title to table\n"..
+	"`-y` auto confirm"
+	)
+end
+
+local args, options = shell.parse(...)
+
+---@param msg string
+local function confirmAction(msg)
+	if options.y then
+		if not msg then
+			msg = "Do you confirm this action?"
+		end
+		msg = msg.."\n"
+
+		io.stdout:write(msg)
+		io.stderr:write("[y/N]?")
+		if io.stdin:read():lower() ~= "y" then
+			io.stdout:write("Canceling.\n")
+			return false
+		end
+	end
+	return true
+end
+
+local function UIInputStart()
+	if args[1] == "print" then
+		PrintTitlesTable()
+	elseif args[1] == "add" then
+		--check args
+		local param = {"title name", "start pos", "end pos", "play speed"}
+		for i = 2, 5 do
+			if not args[i] then
+				io.stderr:write("parameter "..param[i-1].." does not exist\n")
+				return
+			end
+		end
+
+		local sp = tonumber(args[3])
+		local ep = tonumber(args[4])
+		local s = tonumber(args[5])
+		if not sp or sp <= 0 then
+			io.stderr:write("parameter sp invalid\n")
+			return
+		elseif not ep or ep <= 0 then
+			io.stderr:write("parameter ep invalid\n")
+			return
+		elseif not s or s < 0.3 or s >= 2.0 then
+			io.stderr:write("parameter s invalid\n")
+			return
+		end
+
+		addNewTitle({t=args[2], sp=sp, ep=ep, s=s})
+		PrintTitlesTable()
+		if not confirmAction() then
+			return
+		end
+		saveTitlesTable()
+	else
+		printUsage()
+	end
+end
+UIInputStart()
