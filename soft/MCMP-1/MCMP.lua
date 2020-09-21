@@ -183,10 +183,10 @@ local function addNewTitle(newTitleItem)
 end
 
 function PrintTitlesTable()
-	io.stdout:write("track title, start position, end position, playback speed\n")
+	io.stdout:write("key, track title, start position, end position, playback speed\n")
 	for key, val in pairs(tapeInfo.titlesTable) do
 		val = checkTableStructure(val, tapeInfo.titleItem)
-		io.stdout:write(val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
+		io.stdout:write(key..","..val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
 	end
 end
 
@@ -234,6 +234,7 @@ local function printUsage()
 	"Usage:\n"..
 	"`print` print titles and exit\n"..
 	"`add <title name> <start pos in bytes> <end pos in bytes> <play speed>` add title to table\n"..
+	"`del <key> delete title from titles table\n"..
 	"`-y` auto confirm"
 	)
 end
@@ -242,7 +243,7 @@ local args, options = shell.parse(...)
 
 ---@param msg string
 local function confirmAction(msg)
-	if options.y then
+	if not options.y then
 		if not msg then
 			msg = "Do you confirm this action?"
 		end
@@ -270,26 +271,48 @@ local function UIInputStart()
 				return
 			end
 		end
-
+		
+		--convert
 		local sp = tonumber(args[3])
 		local ep = tonumber(args[4])
 		local s = tonumber(args[5])
 		if not sp or sp <= 0 then
-			io.stderr:write("parameter sp invalid\n")
+			io.stderr:write("parameter sp is invalid\n")
 			return
 		elseif not ep or ep <= 0 then
-			io.stderr:write("parameter ep invalid\n")
+			io.stderr:write("parameter ep is invalid\n")
 			return
 		elseif not s or s < 0.3 or s >= 2.0 then
-			io.stderr:write("parameter s invalid\n")
+			io.stderr:write("parameter s is invalid\n")
 			return
 		end
 
+		--add
 		addNewTitle({t=args[2], sp=sp, ep=ep, s=s})
 		PrintTitlesTable()
 		if not confirmAction() then
 			return
 		end
+		saveTitlesTable()
+	elseif args[1] == "del" then
+		--parse input
+		local key = tonumber(args[2])
+		if not key or key <= 0 then
+			io.stderr:write("parameter key is invalid\n")
+			return
+		end
+
+		--check on exist
+		if not tapeInfo.titlesTable[key] then
+			io.stderr:write("title does not exist\n")
+			return
+		end
+
+		if not confirmAction("Delete: ".."key "..key.." name "..tapeInfo.titlesTable[key].t) then
+			return
+		end
+
+		table.remove(tapeInfo.titlesTable, key)
 		saveTitlesTable()
 	else
 		printUsage()
