@@ -95,7 +95,7 @@ local function splitByChunk(text, chunkSize)
 	return chunks
 end
 
----@param varToWrite string number table
+---@param varToWrite string | number | table
 ---@param absPos integer
 local function seekAndWrite(varToWrite, absPos)
 	checkArg(1, varToWrite, "string", "number", "table")
@@ -182,6 +182,22 @@ local function addNewTitle(newTitleItem)
 	table.insert(tapeInfo.titlesTable, newTitleItem)
 end
 
+local function wipeTape()
+	initPointers()
+	--format info
+	seekAndWrite(formatName, pointers.formatName)
+	seekAndWrite(formatVersion, pointers.formatVersion)
+
+	--titles table
+	tapeInfo.titlesTable = {}
+	local toWirte = ser.serialize(tapeInfo.titlesTable)
+	tapeInfo.titlesTableLength = toWirte:len()
+
+	--write titles
+	seekAndWrite(splitIntoBytes(tapeInfo.titlesTableLength, 2), pointers.titleLenghtIndicatorLength)
+	seekAndWrite(toWirte, pointers.titlesTable)
+end
+
 function PrintTitlesTable()
 	io.stdout:write("key, track title, start position, end position, playback speed\n")
 	for key, val in pairs(tapeInfo.titlesTable) do
@@ -227,14 +243,13 @@ function InitTape()
 end
 
 --user interface
-InitTape()
-
 local function printUsage()
 	io.stdout:write(
 	"Usage:\n"..
 	"`print` print titles and exit\n"..
 	"`add <title name> <start pos in bytes> <end pos in bytes> <play speed>` add title to table\n"..
 	"`del <key> delete title from titles table\n"..
+	"`wipe [full wipe?] rewrite service info on tape. If <full wipe> is true then it full wipe a tape\n"..
 	"`-y` auto confirm"
 	)
 end
@@ -261,8 +276,10 @@ end
 
 local function UIInputStart()
 	if args[1] == "print" then
+		InitTape()
 		PrintTitlesTable()
 	elseif args[1] == "add" then
+		InitTape()
 		--check args
 		local param = {"title name", "start pos", "end pos", "play speed"}
 		for i = 2, 5 do
@@ -295,6 +312,7 @@ local function UIInputStart()
 		end
 		saveTitlesTable()
 	elseif args[1] == "del" then
+		InitTape()
 		--parse input
 		local key = tonumber(args[2])
 		if not key or key <= 0 then
@@ -314,6 +332,13 @@ local function UIInputStart()
 
 		table.remove(tapeInfo.titlesTable, key)
 		saveTitlesTable()
+	elseif args[1] == "wipe" then
+		if not confirmAction() then
+			return
+		end
+
+		initPointers()
+		wipeTape()
 	else
 		printUsage()
 	end
