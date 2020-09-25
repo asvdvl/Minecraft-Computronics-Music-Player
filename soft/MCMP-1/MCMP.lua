@@ -182,8 +182,18 @@ local function addNewTitle(newTitleItem)
 	table.insert(tapeInfo.titlesTable, newTitleItem)
 end
 
-local function wipeTape()
+local function wipeTape(fullWipe)
 	initPointers()
+	--full wipe
+	if fullWipe then
+		seekToAbsolutlyPosition(0)
+		local tapeSize = math.ceil(td.getSize()/8192)
+		local filler = string.rep("\x00", 8192)
+		for i = 1, tapeSize do
+			seekAndWrite(filler)
+		end
+	end
+
 	--format info
 	seekAndWrite(formatName, pointers.formatName)
 	seekAndWrite(formatVersion, pointers.formatVersion)
@@ -248,8 +258,9 @@ local function printUsage()
 	"Usage:\n"..
 	"`print` print titles and exit\n"..
 	"`add <title name> <start pos in bytes> <end pos in bytes> <play speed>` add title to table\n"..
-	"`del <key> delete title from titles table\n"..
-	"`wipe [full wipe?] rewrite service info on tape. If <full wipe> is true then it full wipe a tape\n"..
+	"`del <key>` delete title from titles table\n"..
+	"`wipe` rewrite service info on tape. If <full wipe> is true then it full wipe a tape\n"..
+	"`--full` full wipe a tape. Use with `wipe` key\n"..
 	"`-y` auto confirm"
 	)
 end
@@ -338,7 +349,7 @@ local function UIInputStart()
 		end
 
 		initPointers()
-		wipeTape()
+		wipeTape(options.full)
 	else
 		printUsage()
 	end
