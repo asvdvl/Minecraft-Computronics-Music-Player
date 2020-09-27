@@ -259,8 +259,9 @@ local function printUsage()
 	"`print` print titles and exit\n"..
 	"`add <title name> <start pos in bytes> <end pos in bytes> <play speed>` add title to table\n"..
 	"`del <key>` delete title from titles table\n"..
-	"`wipe` rewrite service info on tape. If <full wipe> is true then it full wipe a tape\n"..
+	"`wipe` rewrite service info on tape. Use `--full` option for full wipe\n"..
 	"`--full` full wipe a tape. Use with `wipe` key\n"..
+	"`goto <key>` go to point\n"..
 	"`-y` auto confirm"
 	)
 end
@@ -344,12 +345,29 @@ local function UIInputStart()
 		table.remove(tapeInfo.titlesTable, key)
 		saveTitlesTable()
 	elseif args[1] == "wipe" then
+		initPointers()
+
 		if not confirmAction() then
 			return
 		end
 
-		initPointers()
 		wipeTape(options.full)
+	elseif args[1] == "goto" then
+		InitTape()
+		--parse input
+		local key = tonumber(args[2])
+		if not key or key <= 0 then
+			io.stderr:write("parameter key is invalid\n")
+			return
+		end
+
+		--check on exist
+		if not tapeInfo.titlesTable[key] then
+			io.stderr:write("title does not exist\n")
+			return
+		end
+
+		seekToAbsolutlyPosition(tapeInfo.titlesTable[key].sp)
 	else
 		printUsage()
 	end
