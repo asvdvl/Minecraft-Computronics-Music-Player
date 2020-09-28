@@ -52,6 +52,15 @@ local function concatinateStrings(strings)
 	return concatStr
 end
 
+local function reverseTable(table)
+	checkArg(1, table, "table")
+	local newTable = {}
+    for k, v in ipairs(table) do
+        newTable[#table + 1 - k] = v
+    end
+    return newTable
+end
+
 ---@param num integer
 ---@param length integer
 ---return table of bytes
@@ -93,6 +102,10 @@ local function splitByChunk(text, chunkSize)
 		text = text:sub(chunkSize + 1, #text)
 	end
 	return chunks
+end
+
+local function secondsToBytes()
+	
 end
 
 ---@param varToWrite string | number | table
