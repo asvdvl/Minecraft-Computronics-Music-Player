@@ -30,14 +30,23 @@ local function initPointers()
 	pointers.titlesTable = pointers.titleLenghtIndicatorLength + 2
 end
 
+---@param table table
+---return reverse table
+local function reverseTable(table)
+	checkArg(1, table, "table")
+	local newTable = {}
+    for k, v in ipairs(table) do
+        newTable[#table + 1 - k] = v
+    end
+    return newTable
+end
+
 ---@param bytes table
 ---return integer
 local function concatinateBytes(bytes)
 	local concatNum = 0
-	local secondi = #bytes
 	for _, val in pairs(bytes) do
-		concatNum = concatNum|(val<<(secondi*8-8))
-		secondi = secondi - 1
+		concatNum = val|(concatNum<<(8))
 	end
 	return concatNum
 end
@@ -50,15 +59,6 @@ local function concatinateStrings(strings)
 		concatStr = concatStr..val
 	end
 	return concatStr
-end
-
-local function reverseTable(table)
-	checkArg(1, table, "table")
-	local newTable = {}
-    for k, v in ipairs(table) do
-        newTable[#table + 1 - k] = v
-    end
-    return newTable
 end
 
 ---@param num integer
@@ -79,12 +79,12 @@ local function splitIntoBytes(num, length)
 
 	--Splitting
 	local bytes = {}
-	for i = bytesCount, 1, -1 do
+	for i = 1, bytesCount do
 		bytes[i] = num & 0xFF
 		num = num >> 8
 	end
 
-	return bytes
+	return reverseTable(bytes)
 end
 
 ---@param position integer
@@ -104,8 +104,33 @@ local function splitByChunk(text, chunkSize)
 	return chunks
 end
 
-local function secondsToBytes()
+local function timeToBytes(str)
+	checkArg(1, str, "string")
+	--parse byte input
+	if str:match("(%d+)b") then
+		return tonumber(str:match("(%d+)b"))
+	end
+
+	--parse time input
+	local gMatchS = ""
+	if str:match("%d+%.%d+$") then
+		gMatchS = str:match("%d+%.%d+$")
+	elseif str:match("%d+$") then
+		gMatchS = str:match("%d+$")
+	else
+		io.stderr:write("String "..str.." not recognized as time")
+		return -1
+	end
 	
+	local gMatchHM = str:gmatch("(%d+)%:+")
+	local times = {}
+	table.insert(times, tonumber(gMatchHM() or ""))	--H
+	table.insert(times, tonumber(gMatchHM() or ""))	--M
+	table.insert(times, tonumber(gMatchS or ""))		--S and ms
+	times = reverseTable(times)
+	local timeInBytes = math.ceil((times[1]+((times[2] or 0)+(times[3] or 0)*60)*60)*4096)
+
+	return timeInBytes
 end
 
 ---@param varToWrite string | number | table
@@ -270,12 +295,13 @@ local function printUsage()
 	io.stdout:write(
 	"Usage:\n"..
 	"`print` print titles and exit\n"..
-	"`add <title name> <start pos in bytes> <end pos in bytes> <play speed>` add title to table\n"..
+	"`add <title name> <start pos 'time'> <end pos 'time'> <play speed>` add title to table\n"..
 	"`del <key>` delete title from titles table\n"..
 	"`wipe` rewrite service info on tape. Use `--full` option for full wipe\n"..
 	"`--full` full wipe a tape. Use with `wipe` key\n"..
 	"`goto <key>` go to point\n"..
-	"`-y` auto confirm"
+	"`-y` auto confirm\n"..
+	"The 'time' parameter has format hh:mm:ss.ms where all parameters can have a length of 0 or more . The parameters H, M and ms are optional. You can also enter it in byte format, just write `b` at the end. Example: 256b."
 	)
 end
 
@@ -315,8 +341,8 @@ local function UIInputStart()
 		end
 		
 		--convert
-		local sp = tonumber(args[3])
-		local ep = tonumber(args[4])
+		local sp = timeToBytes(args[3])
+		local ep = timeToBytes(args[4])
 		local s = tonumber(args[5])
 		if not sp or sp <= 0 then
 			io.stderr:write("parameter sp is invalid\n")
