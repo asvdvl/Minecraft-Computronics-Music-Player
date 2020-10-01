@@ -301,7 +301,7 @@ local function printUsage()
 	"`--full` full wipe a tape. Use with `wipe` key\n"..
 	"`goto <key>` go to point\n"..
 	"`-y` auto confirm\n"..
-	"The 'time' parameter has format hh:mm:ss.ms where all parameters can have a length of 0 or more . The parameters H, M and ms are optional. You can also enter it in byte format, just write `b` at the end. Example: 256b."
+	"The 'time' parameter has format hh:mm:ss.ms where all parameters can have a length of 0 or more. The parameters H, M and ms are optional. You can also enter it in byte format, just write `b` at the end. Example: 256b."
 	)
 end
 
