@@ -104,6 +104,8 @@ local function splitByChunk(text, chunkSize)
 	return chunks
 end
 
+---@param str string
+---return time in bytes
 local function timeToBytes(str)
 	checkArg(1, str, "string")
 	--parse byte input
@@ -131,6 +133,29 @@ local function timeToBytes(str)
 	local timeInBytes = math.ceil((times[1]+((times[2] or 0)+(times[3] or 0)*60)*60)*4096)
 
 	return timeInBytes
+end
+
+---@param bytes number
+---@param concatToString boolean
+---@param dontCovert boolean
+---return h, m, s
+---return bytes if dontCovert true.
+---return string H:M:S if concatToString true.
+local function bytesToTime(bytes, concatToString, dontCovert)
+	if dontCovert then
+		return bytes
+	end
+
+	local s = math.ceil(bytes/4096)
+	local h = math.floor(s/3600)
+	local m = math.floor(s / 60) % 60
+	s = math.ceil(bytes/4096*10000)/10000 % 60
+
+	if concatToString then
+		return h..":"..m..":"..s
+	else
+		return h, m, s
+	end
 end
 
 ---@param varToWrite string | number | table
@@ -246,11 +271,15 @@ local function wipeTape(fullWipe)
 	seekAndWrite(toWirte, pointers.titlesTable)
 end
 
-function PrintTitlesTable()
-	io.stdout:write("key, track title, start position, end position, playback speed\n")
+---@param dontCovert boolean
+function PrintTitlesTable(dontCovert)
+	io.stdout:write("key\ttrack title\tstart position\tend position\tplayback speed\n")
+	local function convert(bytes)
+		return bytesToTime(bytes, true, dontCovert)
+	end
 	for key, val in pairs(tapeInfo.titlesTable) do
 		val = checkTableStructure(val, tapeInfo.titleItem)
-		io.stdout:write(key..","..val["t"]..","..val["sp"]..","..val["ep"]..","..val["s"].."\n")
+		io.stdout:write(key.."\t"..val["t"].."\t"..convert(val["sp"]).."\t"..convert(val["ep"]).."\t"..val["s"].."\n")
 	end
 end
 
@@ -298,9 +327,11 @@ local function printUsage()
 	"`add <title name> <start pos 'time'> <end pos 'time'> <play speed>` add title to table\n"..
 	"`del <key>` delete title from titles table\n"..
 	"`wipe` rewrite service info on tape. Use `--full` option for full wipe\n"..
+	"`help` this help\n"..
 	"`--full` full wipe a tape. Use with `wipe` key\n"..
 	"`goto <key>` go to point\n"..
 	"`-y` auto confirm\n"..
+	"`-b` show time in bytes\n"..
 	"The 'time' parameter has format hh:mm:ss.ms where all parameters can have a length of 0 or more. The parameters H, M and ms are optional. You can also enter it in byte format, just write `b` at the end. Example: 256b."
 	)
 end
@@ -328,7 +359,7 @@ end
 local function UIInputStart()
 	if args[1] == "print" then
 		InitTape()
-		PrintTitlesTable()
+		PrintTitlesTable(options.b)
 	elseif args[1] == "add" then
 		InitTape()
 		--check args
@@ -339,7 +370,7 @@ local function UIInputStart()
 				return
 			end
 		end
-		
+
 		--convert
 		local sp = timeToBytes(args[3])
 		local ep = timeToBytes(args[4])
@@ -407,6 +438,8 @@ local function UIInputStart()
 		end
 
 		seekToAbsolutlyPosition(tapeInfo.titlesTable[key].sp)
+	elseif args[1] == "help" then
+		printUsage()
 	else
 		printUsage()
 	end
