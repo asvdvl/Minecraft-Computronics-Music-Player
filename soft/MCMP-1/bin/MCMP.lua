@@ -323,16 +323,16 @@ end
 local function printUsage()
 	io.stdout:write(
 	"Usage:\n"..
-	"`print` print titles and exit\n"..
 	"`add <title name> <start pos 'time'> <end pos 'time'> <play speed>` add title to table\n"..
 	"`del <key>` delete title from titles table\n"..
-	"`wipe` rewrite service info on tape. Use `--full` option for full wipe\n"..
-	"`help` this help\n"..
-	"`--full` full wipe a tape. Use with `wipe` key\n"..
 	"`goto <key>` go to point\n"..
+	"`help` this help\n"..
+	"`print` print titles and exit\n"..
+	"`wipe` rewrite service info on tape. Use `--full` option for full wipe\n"..
+	"`--full` full wipe a tape. Use with `wipe` key\n"..
 	"`-y` auto confirm\n"..
-	"`-b` show time in bytes\n"..
-	"The 'time' parameter has format hh:mm:ss.ms where all parameters can have a length of 0 or more. The parameters H, M and ms are optional. You can also enter it in byte format, just write `b` at the end. Example: 256b."
+	"The 'time' parameter has format hh:mm:ss.ms\n"..
+	"For additional options use `man mcmp`"
 	)
 end
 
