@@ -1,14 +1,59 @@
 NAME
-
+    mcmp - Minecraft Computronics Music Player. 
+    "smart" music player work on opencomputers with tape drive from Computronics.
 
 COMMANDS
+    add <title name> <start pos 'time'> <end pos 'time'> <play speed> 
+        Add title to table
+        The 'time' parameter has format hh:mm:ss.ms where all parameters can have a length of 0 or more. The parameters H, M and ms are optional. You can also enter it in byte format, just write `b` at the end. Example: 256b.
 
+    del <key> 
+        Delete title from titles table
+
+    goto <key> 
+        Go to <key> point
+
+    help 
+        Print help.
+
+    print 
+        Print titles and exit
+
+    wipe 
+        Rewrite service info on tape. Use `--full` option for full wipe
 
 OPTIONS
+    -b 
+        show time in bytes
 
+    --full 
+        full wipe a tape. Use with `wipe` key
+
+    -y 
+        auto confirm
 
 DESCRIPTION
-
+    A way of marking "cassettes" for easy rewinding to different sections and cataloging music. At the same time, leaving the ability to listen to music without using the program.
 
 EXAMPLES
+    mcmp 
+        OR
+    mcmp help
+        Print help.
 
+    mcmp add "test title with spaces in name" 1:00 5:00 1
+        Add title "test title with spaces in name" from 1:00 to 5:00 and speed 1x to table
+
+    mcmp del 2
+        Delete title with key `2`
+        See `print` for get list of titles.
+    
+    mcmp goto 2
+        Rewind by 2 points.
+        See `print` for get list of titles.
+
+    mcmp print
+        Print exist titles.
+
+    mcmp wipe
+        Rewrite service info on tape.
