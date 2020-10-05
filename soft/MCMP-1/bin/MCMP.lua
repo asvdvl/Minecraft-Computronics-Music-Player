@@ -161,6 +161,13 @@ end
 ---@param varToWrite string | number | table
 ---@param absPos integer
 local function seekAndWrite(varToWrite, absPos)
+	--save current point
+	local state = td.getState()
+	if state ~= "STOPPED" then
+		td.stop()
+	end
+	local pos = td.getPosition()
+
 	checkArg(1, varToWrite, "string", "number", "table")
 	if absPos then
 		checkArg(2, absPos, "number")
@@ -185,6 +192,12 @@ local function seekAndWrite(varToWrite, absPos)
 	for _, val in pairs(tapeWrite) do
 		td.write(val)
 	end
+
+	--restore old position
+	seekToAbsolutlyPosition(pos)
+	if state == "PLAYING" then
+		td.play()
+	end
 end
 
 local function saveTitlesTable()
@@ -204,11 +217,26 @@ end
 ---return string or integer
 ---note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
 local function seekAndRead(length, absPos)
+	--save current point
+	local state = td.getState()
+	if state ~= "STOPPED" then
+		td.stop()
+	end
+	local pos = td.getPosition()
+
 	if absPos then
 		checkArg(2, absPos, "number")
 		seekToAbsolutlyPosition(absPos)
 	end
-	return td.read(length)
+
+	local readV = td.read(length)
+
+	--restore old position
+	seekToAbsolutlyPosition(pos)
+	if state == "PLAYING" then
+		td.play()
+	end
+	return readV
 end
 
 ---@param length integer
@@ -328,8 +356,7 @@ local function printUsage()
 	"`goto <key>` go to point\n"..
 	"`help` this help\n"..
 	"`print` print titles and exit\n"..
-	"`wipe` rewrite service info on tape. Use `--full` option for full wipe\n"..
-	"`--full` full wipe a tape. Use with `wipe` key\n"..
+	"`wipe` rewrite service info on tape. Add `--full` option for full wipe\n"..
 	"`-y` auto confirm\n"..
 	"The 'time' parameter has format hh:mm:ss.ms\n"..
 	"For additional options use `man mcmp`"
