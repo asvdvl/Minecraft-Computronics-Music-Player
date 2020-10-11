@@ -154,6 +154,7 @@ function tapeLib.fullWipe()
     for i = 1, tapeSize do
         tapeLib.seekAndWrite(filler)
     end
+	os.sleep(0)
 end
 
 return tapeLib
