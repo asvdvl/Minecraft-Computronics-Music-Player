@@ -24,13 +24,31 @@ COMMANDS
 
 OPTIONS
     -b 
-        show time in bytes
+        Show time in bytes
 
     --full 
-        full wipe a tape. Use with `wipe` key
+        Full wipe a tape. Use with `wipe` key
+
+    --hide-header
+        Hide titles table header
+
+    --hide-banner
+        Don't show tape format name and version
+
+    --custom-FN=
+        Set user formatName
+
+    --custom-FV=
+        Set user formatVersion
+
+    -D
+        Filling in missing parameters by default
+
+    -T
+        Don't show titles table
 
     -y 
-        auto confirm
+        Auto confirm
 
 DESCRIPTION
     A way of marking "cassettes" for easy rewinding to different sections and cataloging music. At the same time, leaving the ability to listen to music without using the program.
