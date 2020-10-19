@@ -29,20 +29,23 @@ OPTIONS
     --full 
         Full wipe a tape. Use with `wipe` key
 
-    --hide-header
+    --hideHeader
         Hide titles table header
 
-    --hide-banner
+    --hideBanner
         Don't show tape format name and version
 
-    --custom-FN=
+    --customFN=
         Set user formatName
 
-    --custom-FV=
+    --customFV=
         Set user formatVersion
 
     -D
         Filling in missing parameters by default
+
+    -P
+        Don't keep playback position
 
     -T
         Don't show titles table

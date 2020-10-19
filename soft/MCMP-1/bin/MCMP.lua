@@ -1,4 +1,3 @@
-local cmp = require("component")
 local ser = require("serialization")
 local shell = require("shell")
 local asvutils = require("asvutils")
@@ -32,6 +31,30 @@ local function initPointers()
 	pointers.titlesTable = pointers.titleLenghtIndicatorLength + 2
 end
 
+local args = {}
+local options = {
+	y = false,
+	b = false,
+	full = false,
+	hideHeader = false,
+	hideBanner = false,
+	customFN = false,
+	customFV = false,
+	D = false,
+	T = false,
+	P = false,
+}
+
+--init options
+local mOptions = {}
+args, mOptions = shell.parse(...)
+options = asvutils.checkTableStructure(mOptions, options)
+mOptions = nil
+
+local function preInit()
+	initPointers()
+end
+
 local function saveTitlesTable()
 	--prepairing
 	local serialized = ser.serialize(tapeInfo.titlesTable)
@@ -52,7 +75,7 @@ local function addNewTitle(newTitleItem)
 end
 
 local function wipeTape(fullWipe)
-	initPointers()
+	preInit()
 	--full wipe
 	if fullWipe then
 		tapeLib.fullWipe()
@@ -85,7 +108,7 @@ function PrintTitlesTable(dontCovert)
 end
 
 function InitTape()
-	initPointers()
+	preInit()
 
 	--read info data from tape
 	tapeInfo["formatName"] = tapeLib.seekAndRead(#formatName, pointers.formatName)
@@ -135,8 +158,6 @@ local function printUsage()
 	"For additional options use `man mcmp`"
 	)
 end
-
-local args, options = shell.parse(...)
 
 local function UIInputStart()
 	if args[1] == "print" then
@@ -197,7 +218,7 @@ local function UIInputStart()
 		table.remove(tapeInfo.titlesTable, key)
 		saveTitlesTable()
 	elseif args[1] == "wipe" then
-		initPointers()
+		preInit()
 
 		if not asvutils.confirmAction(nil, options.y) then
 			return
