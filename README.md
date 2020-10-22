@@ -25,7 +25,7 @@ Minecraft Computronics Music Player (MCMP)
 0. Установка 
   - Качаем файл по [ссылке](https://raw.githubusercontent.com/asvdeveloper/Minecraft-Computronics-Music-Player/master/soft/MCMP-1/MCMP.lua) или смотрим в soft/MCMP-х/bin/ где x - версия "разметки".
   - Сохраняем его под именем mcmp.lua(или любым другим, на ваше усмотрение) в папку `/usr/bin/`(или /bin/). Полный путь `/usr/bin/mcmp.lua(или /bin/mcmp.lua)`.
-  - Также качаем [tapeLib](https://github.com/asvdeveloper/Minecraft-Computronics-Music-Player/raw/master/soft/MCMP-1/lib/tapeLib.lua) и [asvutils](https://github.com/asvdeveloper/Minecraft-Computronics-Music-Player/raw/master/soft/MCMP-1/lib/asvutils.lua) и сохраняем их в /lib/ с расширением .lua аналогично пердыдущему шагу. 
+  - Также качаем [tapeLib](https://github.com/asvdeveloper/Minecraft-Computronics-Music-Player/raw/master/soft/MCMP-1/lib/tapeLib.lua) и [asvutils](https://raw.githubusercontent.com/asvdeveloper/asvutils/master/lib/asvutils.lua) и сохраняем их в /lib/ с расширением .lua аналогично пердыдущему шагу. 
 
 ## Список задач: 
 - [x] Инициализация базовых переменных и таблиц.
