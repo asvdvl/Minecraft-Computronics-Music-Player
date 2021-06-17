@@ -16,4 +16,10 @@ for _, file in pairs(filesTable) do
     end
 end
 
+--install asvlibs
+local success, message = wget("-f","https://raw.githubusercontent.com/asvdvl/asvlibs/master/asv/init.lua","/lib/asv/init.lua")
+if not success then
+    io.stderr:write("Download error: asvlibs by reason: "..message)
+end
+
 print("Setup complete!")

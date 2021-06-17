@@ -1,6 +1,6 @@
 local ser = require("serialization")
 local shell = require("shell")
-local asvutils = require("asvutils")
+local asvutils = require("asv").utils
 local tapeLib = require("tapeLib")
 
 local formatName = "MCMP"
@@ -52,6 +52,19 @@ options = asvutils.checkTableStructure(mOptions, options)
 mOptions = nil
 
 local function preInit()
+	local stringKeyList = {
+		customFN = "",
+		customFV = "",
+	}
+
+	for key, value in pairs(stringKeyList) do
+		if type(options[key]) == "boolean" and options[key] then
+			options[key] = value
+		end
+	end
+
+	
+
 	initPointers()
 end
 
