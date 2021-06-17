@@ -8,22 +8,12 @@ local filesTable = {
     "/usr/man/mcmp"
 }
 
---check exsisting files
-local exists = {}
+--Download files
 for _, file in pairs(filesTable) do
-    if fs.exists(file) then
-        table.insert(exists, file)
+    local success, message = wget("-f", baseURL..file, file)
+    if not success then
+        io.stderr:write("Download error: "..file.." by reason: "..message)
     end
 end
 
-print("Warning: "..#exists.." exiting file has been found. They will be deleted, continue the installation?")
-if #exists < 5 then
-    for _, file in pairs(exists) do
-        print(file)
-    end
-end
-print("[y/N]?")
-if io.stdin:read():lower() ~= "y" then
-	print("Canceling.")
-	os.exit()
-end
+print("Setup complete!")
