@@ -2,7 +2,7 @@ local tapeLib = {}
 
 local td = require("component").tape_drive
 local ser = require("serialization")
-local asvutils = require("asvutils")
+local asvutils = require("asv").utils
 
 ---@param position integer
 function tapeLib.seekToAbsolutlyPosition(position)
@@ -28,7 +28,7 @@ function tapeLib.timeToBytes(str)
 		io.stderr:write("String "..str.." not recognized as time")
 		return -1
 	end
-	
+
 	local gMatchHM = str:gmatch("(%d+)%:+")
 	local times = {}
 	table.insert(times, tonumber(gMatchHM() or ""))	--H
@@ -67,7 +67,7 @@ end
 
 ---@param varToWrite string | number | table
 ---@param absPos integer
-function tapeLib.seekAndWrite(varToWrite, absPos)
+function tapeLib.seekAndWrite(varToWrite, absPos, dontKeepPosition)
 	--save current point
 	local state = td.getState()
 	if state ~= "STOPPED" then
@@ -101,7 +101,9 @@ function tapeLib.seekAndWrite(varToWrite, absPos)
 	end
 
 	--restore old position
-	tapeLib.seekToAbsolutlyPosition(pos)
+	if not dontKeepPosition then
+		tapeLib.seekToAbsolutlyPosition(pos)
+	end
 	if state == "PLAYING" then
 		td.play()
 	end
@@ -112,7 +114,7 @@ end
 ---@param absPos integer
 ---return string or integer
 ---note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
-function tapeLib.seekAndRead(length, absPos)
+function tapeLib.seekAndRead(length, absPos, dontKeepPosition)
 	--save current point
 	local state = td.getState()
 	if state ~= "STOPPED" then
@@ -128,7 +130,9 @@ function tapeLib.seekAndRead(length, absPos)
 	local readV = td.read(length)
 
 	--restore old position
-	tapeLib.seekToAbsolutlyPosition(pos)
+	if not dontKeepPosition then
+		tapeLib.seekToAbsolutlyPosition(pos)
+	end
 	if state == "PLAYING" then
 		td.play()
 	end

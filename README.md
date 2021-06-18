@@ -22,10 +22,7 @@ Minecraft Computronics Music Player (MCMP)
   - Предполагается что аудио данные не будут изменятся и дополнятся какими либо метками.
 
 ## Установка и использование:
-0. Установка 
-  - Качаем файл по [ссылке](https://raw.githubusercontent.com/asvdeveloper/Minecraft-Computronics-Music-Player/master/soft/MCMP-1/MCMP.lua) или смотрим в soft/MCMP-х/bin/ где x - версия "разметки".
-  - Сохраняем его под именем mcmp.lua(или любым другим, на ваше усмотрение) в папку `/usr/bin/`(или /bin/). Полный путь `/usr/bin/mcmp.lua(или /bin/mcmp.lua)`.
-  - Также качаем [tapeLib](https://github.com/asvdeveloper/Minecraft-Computronics-Music-Player/raw/master/soft/MCMP-1/lib/tapeLib.lua) и [asvutils](https://github.com/asvdeveloper/Minecraft-Computronics-Music-Player/raw/master/soft/MCMP-1/lib/asvutils.lua) и сохраняем их в /lib/ с расширением .lua аналогично пердыдущему шагу. 
+- Вставляем интернет карту в компьютер и запускаем `wget -f https://raw.githubusercontent.com/asvdvl/Minecraft-Computronics-Music-Player/master/installer.lua /tmp/MCMPis.lua ; /tmp/MCMPis.lua`
 
 ## Список задач: 
 - [x] Инициализация базовых переменных и таблиц.
@@ -45,7 +42,7 @@ Minecraft Computronics Music Player (MCMP)
 - [x] Обратный перевод байт в секудны/минуты/часы.
 - [x] Поддержка "чтения без остановки воспоизведения".
 - [x] Вынос служебных функций в отдельный файл и подключать код как библиотеку.
-- [ ] Больше служебных функций!
+- [x] Больше служебных функций!
 - [ ] Установка скорости для трека. 
 - [ ] Запись аудио!
 - [ ] Функция дефрагментации: перемещение с целью убрать "пропуски".
