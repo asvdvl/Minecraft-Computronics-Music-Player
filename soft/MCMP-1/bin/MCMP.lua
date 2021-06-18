@@ -20,7 +20,7 @@ local tapeInfo = {
 }
 local pointers = {
 	formatName = 0,	--0
-	formatVersion = 0, --4 
+	formatVersion = 0, --4
 	titleLenghtIndicatorLength = 0, --5
 	titlesTable = 0 --7
 }
@@ -38,8 +38,8 @@ local options = {
 	full = false,
 	hideHeader = false,
 	hideBanner = false,
-	customFN = false,
-	customFV = false,
+	customFN = false,	--in developing
+	customFV = false,	--in developing
 	D = false,
 	T = false,
 	P = false,
@@ -48,23 +48,10 @@ local options = {
 --init options
 local mOptions = {}
 args, mOptions = shell.parse(...)
-options = asvutils.checkTableStructure(mOptions, options)
+options = asvutils.correctTableStructure(mOptions, options)
 mOptions = nil
 
 local function preInit()
-	local stringKeyList = {
-		customFN = "",
-		customFV = "",
-	}
-
-	for key, value in pairs(stringKeyList) do
-		if type(options[key]) == "boolean" and options[key] then
-			options[key] = value
-		end
-	end
-
-	
-
 	initPointers()
 end
 
@@ -83,7 +70,7 @@ end
 
 ---@param newTitleItem table
 local function addNewTitle(newTitleItem)
-	newTitleItem = asvutils.checkTableStructure(newTitleItem, tapeInfo.titleItem)
+	newTitleItem = asvutils.correctTableStructure(newTitleItem, tapeInfo.titleItem)
 	table.insert(tapeInfo.titlesTable, newTitleItem)
 end
 

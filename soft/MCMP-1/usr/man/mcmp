@@ -36,10 +36,10 @@ OPTIONS
         Don't show tape format name and version
 
     --customFN=
-        Set user formatName
+        (in developing)Set user formatName
 
     --customFV=
-        Set user formatVersion
+        (in developing)Set user formatVersion
 
     -D
         Filling in missing parameters by default
