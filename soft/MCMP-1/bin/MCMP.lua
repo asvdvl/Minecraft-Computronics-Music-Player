@@ -12,10 +12,10 @@ local tapeInfo = {
 	titlesTableLength = 0,
 	titlesTable = {},
 	titleItem = {
-		t 	= "Title",		--name of the track
-		sp 	= -1,				--start position
-		ep 	= -1,				--end position
-		s 	= 1				--playback speed
+		t 	= "Default title",		--name of the track
+		sp 	= -1,					--start position
+		ep 	= -1,					--end position
+		s 	= 1						--playback speed
 	}
 }
 local pointers = {
@@ -61,10 +61,10 @@ local function saveTitlesTable()
 	tapeInfo.titlesTableLength = #serialized
 
 	--write titleLenghtIndicator
-	tapeLib.seekAndWrite(asvutils.splitIntoBytes(tapeInfo.titlesTableLength, titleLenghtIndicatorLength), pointers.titleLenghtIndicatorLength)
+	tapeLib.seekAndWrite(asvutils.splitIntoBytes(tapeInfo.titlesTableLength, titleLenghtIndicatorLength), pointers.titleLenghtIndicatorLength, options.P)
 
 	--write titlesTable
-	tapeLib.seekAndWrite(serialized, pointers.titlesTable)
+	tapeLib.seekAndWrite(serialized, pointers.titlesTable, options.P)
 end
 
 
@@ -82,8 +82,8 @@ local function wipeTape(fullWipe)
 	end
 
 	--format info
-	tapeLib.seekAndWrite(formatName, pointers.formatName)
-	tapeLib.seekAndWrite(formatVersion, pointers.formatVersion)
+	tapeLib.seekAndWrite(formatName, pointers.formatName, options.P)
+	tapeLib.seekAndWrite(formatVersion, pointers.formatVersion, options.P)
 
 	--titles table
 	tapeInfo.titlesTable = {}
@@ -91,19 +91,21 @@ local function wipeTape(fullWipe)
 	tapeInfo.titlesTableLength = toWirte:len()
 
 	--write titles
-	tapeLib.seekAndWrite(asvutils.splitIntoBytes(tapeInfo.titlesTableLength, 2), pointers.titleLenghtIndicatorLength)
-	tapeLib.seekAndWrite(toWirte, pointers.titlesTable)
+	tapeLib.seekAndWrite(asvutils.splitIntoBytes(tapeInfo.titlesTableLength, 2), pointers.titleLenghtIndicatorLength, options.P)
+	tapeLib.seekAndWrite(toWirte, pointers.titlesTable, options.P)
 end
 
 ---@param dontCovert boolean
 function PrintTitlesTable(dontCovert)
-	io.stdout:write("key\ttrack title\tstart position\tend position\tplayback speed\n")
-	local function convert(bytes)
-		return tapeLib.bytesToTime(bytes, true, dontCovert)
-	end
-	for key, val in pairs(tapeInfo.titlesTable) do
-		val = asvutils.checkTableStructure(val, tapeInfo.titleItem)
-		io.stdout:write(key.."\t"..val["t"].."\t"..convert(val["sp"]).."\t"..convert(val["ep"]).."\t"..val["s"].."\n")
+	if not options.T then
+		io.stdout:write("key\ttrack title\tstart position\tend position\tplayback speed\n")
+		local function convert(bytes)
+			return tapeLib.bytesToTime(bytes, true, dontCovert)
+		end
+		for key, val in pairs(tapeInfo.titlesTable) do
+			val = asvutils.correctTableStructure(val, tapeInfo.titleItem)
+			io.stdout:write(key.."\t"..val["t"].."\t"..convert(val["sp"]).."\t"..convert(val["ep"]).."\t"..val["s"].."\n")
+		end
 	end
 end
 
@@ -111,16 +113,20 @@ function InitTape()
 	preInit()
 
 	--read info data from tape
-	tapeInfo["formatName"] = tapeLib.seekAndRead(#formatName, pointers.formatName)
-	tapeInfo["formatVersion"] = tapeLib.seekAndRead(nil, pointers.formatVersion)
+	tapeInfo["formatName"] = tapeLib.seekAndRead(#formatName, pointers.formatName, options.P)
+	tapeInfo["formatVersion"] = tapeLib.seekAndRead(nil, pointers.formatVersion, options.P)
 	tapeInfo.titlesTableLength = asvutils.concatinateBytes(tapeLib.readBytes(titleLenghtIndicatorLength, pointers.titleLenghtIndicatorLength))
 
 	--check on valid tape
 	if tapeInfo["formatName"] == formatName then
 		if tapeInfo["formatVersion"] == formatVersion then
 			--print base info about table
-			io.stdout:write(tapeInfo["formatName"].." ver: "..tostring(tapeInfo["formatVersion"]).."\n")
-			io.stdout:write("Titles table length: "..tostring(tapeInfo.titlesTableLength).."\n")
+			if not options.hideBanner then
+				io.stdout:write(tapeInfo["formatName"].." ver: "..tostring(tapeInfo["formatVersion"]).."\n")
+			end
+			if not options.hideHeader then
+				io.stdout:write("Titles table length: "..tostring(tapeInfo.titlesTableLength).."\n")
+			end
 
 			--try to parse table
 			local table, status = tapeLib.readTable(tapeInfo.titlesTableLength, pointers.titlesTable)
@@ -132,7 +138,7 @@ function InitTape()
 			--correct table structure
 			local newTable = {}
 			for key, val in pairs(table) do
-				newTable[key] = asvutils.checkTableStructure(val, tapeInfo.titleItem)
+				newTable[key] = asvutils.correctTableStructure(val, tapeInfo.titleItem)
 			end
 			tapeInfo.titlesTable = newTable
 		else
@@ -168,7 +174,18 @@ local function UIInputStart()
 		--check args
 		local param = {"title name", "start pos", "end pos", "play speed"}
 		for i = 2, 5 do
-			if not args[i] then
+			if not args[i] and options.D then
+				--because its simply than write mapping
+				if i == 2 then
+					args[i] = tapeInfo.titleItem.t
+				elseif i == 3 then
+					args[i] = tostring(tapeInfo.titleItem.sp)
+				elseif i == 4 then
+					args[i] = tostring(tapeInfo.titleItem.ep)
+				elseif i == 5 then
+					args[i] = tapeInfo.titleItem.s
+				end
+			elseif not args[i] then
 				io.stderr:write("parameter "..param[i-1].." does not exist\n")
 				return
 			end
