@@ -2,7 +2,7 @@ local tapeLib = {}
 
 local td = require("component").tape_drive
 local ser = require("serialization")
-local asvutils = require("asvutils")
+local asvutils = require("asv").utils
 
 ---@param position integer
 function tapeLib.seekToAbsolutlyPosition(position)
