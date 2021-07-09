@@ -1,9 +1,8 @@
 --wget instance
 local wget = loadfile("/bin/wget.lua")
-local fs = require("filesystem")
 local baseURL = "https://raw.githubusercontent.com/asvdvl/Minecraft-Computronics-Music-Player/master/soft/MCMP-1"
 local filesTable = {
-    "/bin/MCMP.lua",
+    "/bin/mcmp.lua",
     "/lib/tapeLib.lua",
     "/usr/man/mcmp"
 }
