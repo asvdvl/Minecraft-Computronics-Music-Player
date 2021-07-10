@@ -96,7 +96,7 @@ local function wipeTape(fullWipe)
 end
 
 ---@param dontCovert boolean
-function PrintTitlesTable(dontCovert)
+local function PrintTitlesTable(dontCovert)
 	if not options.T then
 		io.stdout:write("key\ttrack title\tstart position\tend position\tplayback speed\n")
 		local function convert(bytes)
@@ -109,7 +109,27 @@ function PrintTitlesTable(dontCovert)
 	end
 end
 
-function InitTape()
+local function checkKeyOnNumber(key)
+	if not key or key <= 0 then
+		io.stderr:write("parameter key is invalid\n")
+		return true
+	end
+end
+
+local function checkKeyFromUserInput(key)
+	--check input
+	if checkKeyOnNumber(key) then
+		return true
+	end
+
+	--check on exist
+	if not tapeInfo.titlesTable[key] then
+		io.stderr:write("title does not exist\n")
+		return true
+	end
+end
+
+local function initTape()
 	preInit()
 
 	--read info data from tape
@@ -159,6 +179,8 @@ local function printUsage()
 	"`help` this help\n"..
 	"`print` print titles and exit\n"..
 	"`wipe` rewrite service info on tape. Add `--full` option for full wipe\n"..
+	"`speed <value>` set play speed\n"..
+	"`play <key>` start playing from position\n"..
 	"`-y` auto confirm\n"..
 	"The 'time' parameter has format hh:mm:ss.ms\n"..
 	"For additional options use `man mcmp`"
@@ -167,10 +189,10 @@ end
 
 local function UIInputStart()
 	if args[1] == "print" then
-		InitTape()
+		initTape()
 		PrintTitlesTable(options.b)
 	elseif args[1] == "add" then
-		InitTape()
+		initTape()
 		--check args
 		local param = {"title name", "start pos", "end pos", "play speed"}
 		for i = 2, 5 do
@@ -214,17 +236,10 @@ local function UIInputStart()
 		end
 		saveTitlesTable()
 	elseif args[1] == "del" then
-		InitTape()
+		initTape()
 		--parse input
 		local key = tonumber(args[2])
-		if not key or key <= 0 then
-			io.stderr:write("parameter key is invalid\n")
-			return
-		end
-
-		--check on exist
-		if not tapeInfo.titlesTable[key] then
-			io.stderr:write("title does not exist\n")
+		if checkKeyFromUserInput(key) then
 			return
 		end
 
@@ -243,21 +258,32 @@ local function UIInputStart()
 
 		wipeTape(options.full)
 	elseif args[1] == "goto" then
-		InitTape()
-		--parse input
-		local key = tonumber(args[2])
-		if not key or key <= 0 then
-			io.stderr:write("parameter key is invalid\n")
-			return
-		end
+		initTape()
 
-		--check on exist
-		if not tapeInfo.titlesTable[key] then
-			io.stderr:write("title does not exist\n")
+		local key = tonumber(args[2])
+		if checkKeyFromUserInput(key) then
 			return
 		end
 
 		tapeLib.seekToAbsolutlyPosition(tapeInfo.titlesTable[key].sp)
+	elseif args[1] == "speed" then
+		local value = tonumber(args[2])
+		if checkKeyOnNumber(value) then
+			return
+		end
+
+		tapeLib.setSpeed(value)
+	elseif args[1] == "play" then
+		initTape()
+
+		local key = tonumber(args[2])
+		if checkKeyFromUserInput(key) then
+			return
+		end
+
+		local currentTitle = tapeInfo.titlesTable[key]
+		tapeLib.play(currentTitle.sp, currentTitle.s)
+		print("Start playing. Track: "..currentTitle.t.." duration: "..tapeLib.bytesToTime(currentTitle.ep - currentTitle.sp, true))
 	elseif args[1] == "help" then
 		printUsage()
 	else

@@ -40,7 +40,6 @@ function tapeLib.timeToBytes(str)
 	return timeInBytes
 end
 
-
 ---@param bytes number
 ---@param concatToString boolean
 ---@param dontCovert boolean
@@ -63,7 +62,6 @@ function tapeLib.bytesToTime(bytes, concatToString, dontCovert)
 		return h, m, s
 	end
 end
-
 
 ---@param varToWrite string | number | table
 ---@param absPos integer
@@ -108,7 +106,6 @@ function tapeLib.seekAndWrite(varToWrite, absPos, dontKeepPosition)
 		td.play()
 	end
 end
-
 
 ---@param length integer
 ---@param absPos integer
@@ -159,6 +156,21 @@ function tapeLib.fullWipe()
         tapeLib.seekAndWrite(filler)
     end
 	os.sleep(0)
+end
+
+---@param speed number
+function tapeLib.setSpeed(speed)
+	td.setSpeed(speed)
+end
+
+---@param fromPosition integer
+---@param speed? number
+function tapeLib.play(fromPosition, speed)
+    tapeLib.seekToAbsolutlyPosition(fromPosition)
+	if speed then
+		tapeLib.setSpeed(speed)
+	end
+    td.play()
 end
 
 return tapeLib
