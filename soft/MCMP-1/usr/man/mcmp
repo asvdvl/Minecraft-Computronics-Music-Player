@@ -2,6 +2,9 @@ NAME
     mcmp - Minecraft Computronics Music Player. 
     "smart" music player work on opencomputers with tape drive from Computronics.
 
+DESCRIPTION
+    A way of marking "cassettes" for easy rewinding to different sections and cataloging music. At the same time, leaving the ability to listen to music without using the program.
+
 COMMANDS
     add <title name> <start pos 'time'> <end pos 'time'> <play speed> 
         Add title to table
@@ -22,6 +25,8 @@ COMMANDS
     wipe 
         Rewrite service info on tape. Use `--full` option for full wipe
 
+    play <key>
+        Start playing from <key> position.
 OPTIONS
     -b 
         Show time in bytes
@@ -45,16 +50,13 @@ OPTIONS
         Filling in missing parameters by default
 
     -P
-        Don't keep playback position
+        Don't keep playback position(except play, goto, wipe commands)
 
     -T
         Don't show titles table
 
     -y 
         Auto confirm
-
-DESCRIPTION
-    A way of marking "cassettes" for easy rewinding to different sections and cataloging music. At the same time, leaving the ability to listen to music without using the program.
 
 EXAMPLES
     mcmp 

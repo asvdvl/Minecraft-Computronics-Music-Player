@@ -4,7 +4,8 @@ local baseURL = "https://raw.githubusercontent.com/asvdvl/Minecraft-Computronics
 local filesTable = {
     "/bin/mcmp.lua",
     "/lib/tapeLib.lua",
-    "/usr/man/mcmp"
+    "/usr/man/mcmp",
+    "/usr/man/mcmp_ru"
 }
 
 --Download files
