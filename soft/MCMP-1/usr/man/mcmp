@@ -58,6 +58,9 @@ OPTIONS
     -y 
         Auto confirm
 
+    -a
+        Advanced mode, need for some functions.
+
 EXAMPLES
     mcmp 
         OR

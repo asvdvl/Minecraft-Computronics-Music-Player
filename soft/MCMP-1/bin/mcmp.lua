@@ -43,6 +43,7 @@ local options = {
 	D = false,
 	T = false,
 	P = false,
+	a = false,
 }
 
 --init options
@@ -50,10 +51,6 @@ local mOptions = {}
 args, mOptions = shell.parse(...)
 options = asvutils.correctTableStructure(mOptions, options)
 mOptions = nil
-
-local function preInit()
-	initPointers()
-end
 
 local function saveTitlesTable()
 	--prepairing
@@ -75,7 +72,7 @@ local function addNewTitle(newTitleItem)
 end
 
 local function wipeTape(fullWipe)
-	preInit()
+	initPointers()
 	--full wipe
 	if fullWipe then
 		tapeLib.fullWipe()
@@ -130,7 +127,7 @@ local function checkTitleKeyFromUserInput(key)
 end
 
 local function initTape()
-	preInit()
+	initPointers()
 
 	--read info data from tape
 	tapeInfo["formatName"] = tapeLib.seekAndRead(#formatName, pointers.formatName, options.P)
@@ -175,7 +172,9 @@ local function printUsage()
 	"Usage:\n"..
 	"`add <title name> <start pos 'time'> <end pos 'time'> <play speed>` add title to table\n"..
 	"`del <key>` delete title from titles table\n"..
-	"`goto <key>` go to point\n"..
+	"`goto <key>` jump to the beginning of the selected track\n"..
+	"`gotoend <key>` jump to the end of the selected track\n"..
+	"`goto -a <'time'>` jump to specified time\n"..
 	"`help` this help\n"..
 	"`print` print titles and exit\n"..
 	"`wipe` rewrite service info on tape. Add `--full` option for full wipe\n"..
@@ -264,14 +263,23 @@ local function UIInputStart()
 		table.remove(tapeInfo.titlesTable, key)
 		saveTitlesTable()
 	elseif args[1] == "wipe" then
-		preInit()
+		initPointers()
 
 		if not asvutils.confirmAction(nil, options.y) then
 			return
 		end
 
 		wipeTape(options.full)
-	elseif args[1] == "goto" then
+	elseif args[1] == "goto" or (args[1] == "gotoend" and not options.a) then
+		if options.a then
+			local time = tapeLib.timeToBytes(args[2])
+			if not time or time < 0 then
+				io.stderr:write("time is invalid\n")
+				return
+			end
+			tapeLib.seekToAbsolutlyPosition(time)
+			return
+		end
 		initTape()
 
 		local key = tonumber(args[2])
@@ -279,7 +287,11 @@ local function UIInputStart()
 			return
 		end
 
-		tapeLib.seekToAbsolutlyPosition(tapeInfo.titlesTable[key].sp)
+		if args[1] == "goto" then
+			tapeLib.seekToAbsolutlyPosition(tapeInfo.titlesTable[key].sp)
+		else
+			tapeLib.seekToAbsolutlyPosition(tapeInfo.titlesTable[key].ep)
+		end
 	elseif args[1] == "speed" then
 		local value = tonumber(args[2])
 		if checkKeyOnNumber(value) then
