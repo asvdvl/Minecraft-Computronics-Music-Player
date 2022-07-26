@@ -116,7 +116,7 @@ local function checkKeyOnNumber(key)
 	end
 end
 
-local function checkKeyFromUserInput(key)
+local function checkTitleKeyFromUserInput(key)
 	--check input
 	if checkKeyOnNumber(key) then
 		return true
@@ -217,7 +217,8 @@ local function UIInputStart()
 		local sp = tapeLib.timeToBytes(args[3])
 		local ep = tapeLib.timeToBytes(args[4])
 		local s = tonumber(args[5])
-		if not sp or sp <= 0 then
+
+		if not sp or sp < 0 then
 			io.stderr:write("parameter sp is invalid\n")
 			return
 		elseif not ep or ep <= 0 then
@@ -226,6 +227,19 @@ local function UIInputStart()
 		elseif not s or s < 0.3 or s >= 2.0 then
 			io.stderr:write("parameter s is invalid\n")
 			return
+		end
+
+		if ep - sp < 1 then
+			io.stderr:write("track length cannot be less than 1b(~0.0001)\n")
+			return
+		end
+
+		--check on collision
+		for _, item in pairs(tapeInfo.titlesTable) do
+			if (item.sp < sp and sp < item.ep) or (item.sp < ep and ep < item.ep) then
+				io.stderr:write("New title has collision with exist `"..item.t.."`")
+				return
+			end
 		end
 
 		--add
@@ -239,11 +253,11 @@ local function UIInputStart()
 		initTape()
 		--parse input
 		local key = tonumber(args[2])
-		if checkKeyFromUserInput(key) then
+		if checkTitleKeyFromUserInput(key) then
 			return
 		end
 
-		if not asvutils.confirmAction("Delete: ".."key "..key.." name "..tapeInfo.titlesTable[key].t, options.y) then
+		if not asvutils.confirmAction("Delete: ".."key `"..key.."` name `"..tapeInfo.titlesTable[key].t.."`", options.y) then
 			return
 		end
 
@@ -261,7 +275,7 @@ local function UIInputStart()
 		initTape()
 
 		local key = tonumber(args[2])
-		if checkKeyFromUserInput(key) then
+		if checkTitleKeyFromUserInput(key) then
 			return
 		end
 
@@ -277,13 +291,12 @@ local function UIInputStart()
 		initTape()
 
 		local key = tonumber(args[2])
-		if checkKeyFromUserInput(key) then
-			return
-		end
 
-		local currentTitle = tapeInfo.titlesTable[key]
-		tapeLib.play(currentTitle.sp, currentTitle.s)
-		print("Start playing. Track: "..currentTitle.t.." duration: "..tapeLib.bytesToTime(currentTitle.ep - currentTitle.sp, true))
+		if not checkTitleKeyFromUserInput(key) then
+			local currentTitle = tapeInfo.titlesTable[key]
+			tapeLib.play(currentTitle.sp, currentTitle.s)
+			print("Start playing. Track: "..currentTitle.t.." duration: "..tapeLib.bytesToTime(currentTitle.ep - currentTitle.sp, true))
+		end
 	elseif args[1] == "help" then
 		printUsage()
 	else

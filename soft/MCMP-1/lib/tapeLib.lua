@@ -57,7 +57,17 @@ function tapeLib.bytesToTime(bytes, concatToString, dontCovert)
 	s = math.ceil(bytes/4096*10000)/10000 % 60
 
 	if concatToString then
-		return h..":"..m..":"..s
+		local resultStr = ""
+		
+		if h ~= 0 then
+			resultStr = resultStr..h..":"
+		end
+
+		if m ~= 0 then
+			resultStr = resultStr..m..":"
+		end
+
+		return resultStr..s
 	else
 		return h, m, s
 	end
