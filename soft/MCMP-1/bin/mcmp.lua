@@ -181,6 +181,7 @@ local function printUsage()
 	"`speed <value>` set play speed\n"..
 	"`play <key>` start playing from position\n"..
 	"`-y` auto confirm\n"..
+	"`--address=<address>` for specified tape drive\n"..
 	"The 'time' parameter has format hh:mm:ss.ms\n"..
 	"For additional options use `man mcmp`"
 	)
@@ -190,25 +191,22 @@ local function UIInputStart()
 	if args[1] == "print" then
 		initTape()
 		PrintTitlesTable(options.b)
+		
 	elseif args[1] == "add" then
 		initTape()
 		--check args
-		local param = {"title name", "start pos", "end pos", "play speed"}
-		for i = 2, 5 do
-			if not args[i] and options.D then
-				--because its simply than write mapping
-				if i == 2 then
-					args[i] = tapeInfo.titleItem.t
-				elseif i == 3 then
-					args[i] = tostring(tapeInfo.titleItem.sp)
-				elseif i == 4 then
-					args[i] = tostring(tapeInfo.titleItem.ep)
-				elseif i == 5 then
-					args[i] = tapeInfo.titleItem.s
-				end
-			elseif not args[i] then
-				io.stderr:write("parameter "..param[i-1].." does not exist\n")
-				return
+		if options.D then
+			if not args[2] then
+				args[2] = tapeInfo.titleItem.t
+			end
+			if not args[3] then
+				args[3] = tostring(tapeInfo.titleItem.sp)
+			end
+			if not args[4] then
+				args[4] = tostring(tapeInfo.titleItem.ep)
+			end
+			if not args[5] then
+				args[5] = tapeInfo.titleItem.s
 			end
 		end
 

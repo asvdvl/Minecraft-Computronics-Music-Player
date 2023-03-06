@@ -1,17 +1,17 @@
-local tapeLib = {}
+local this = {}
 
-local td = require("component").tape_drive
+this.tapeDrive = require("component").tape_drive
 local ser = require("serialization")
 local asvutils = require("asv").utils
 
 ---@param position integer
-function tapeLib.seekToAbsolutlyPosition(position)
-	td.seek(position - td.getPosition())
+function this.seekToAbsolutlyPosition(position)
+	this.tapeDrive.seek(position - this.tapeDrive.getPosition())
 end
 
 ---@param str string
 ---return time in bytes
-function tapeLib.timeToBytes(str)
+function this.timeToBytes(str)
 	checkArg(1, str, "string")
 	--parse byte input
 	if str:match("(%d+)b") then
@@ -46,7 +46,7 @@ end
 ---return h, m, s
 ---return bytes if dontCovert true.
 ---return string H:M:S if concatToString true.
-function tapeLib.bytesToTime(bytes, concatToString, dontCovert)
+function this.bytesToTime(bytes, concatToString, dontCovert)
 	if dontCovert then
 		return bytes
 	end
@@ -75,18 +75,18 @@ end
 
 ---@param varToWrite string | number | table
 ---@param absPos integer
-function tapeLib.seekAndWrite(varToWrite, absPos, dontKeepPosition)
+function this.seekAndWrite(varToWrite, absPos, dontKeepPosition)
 	--save current point
-	local state = td.getState()
+	local state = this.tapeDrive.getState()
 	if state ~= "STOPPED" then
-		td.stop()
+		this.tapeDrive.stop()
 	end
-	local pos = td.getPosition()
+	local pos = this.tapeDrive.getPosition()
 
 	checkArg(1, varToWrite, "string", "number", "table")
 	if absPos then
 		checkArg(2, absPos, "number")
-		tapeLib.seekToAbsolutlyPosition(absPos)
+		this.seekToAbsolutlyPosition(absPos)
 	end
 
 	local tapeWrite = {}
@@ -105,15 +105,15 @@ function tapeLib.seekAndWrite(varToWrite, absPos, dontKeepPosition)
 	end
 
 	for _, val in pairs(tapeWrite) do
-		td.write(val)
+		this.tapeDrive.write(val)
 	end
 
 	--restore old position
 	if not dontKeepPosition then
-		tapeLib.seekToAbsolutlyPosition(pos)
+		this.seekToAbsolutlyPosition(pos)
 	end
 	if state == "PLAYING" then
-		td.play()
+		this.tapeDrive.play()
 	end
 end
 
@@ -121,66 +121,66 @@ end
 ---@param absPos integer
 ---return string or integer
 ---note: if the value of the first parameter is nil then this is the same as TD.read() (without parameters)
-function tapeLib.seekAndRead(length, absPos, dontKeepPosition)
+function this.seekAndRead(length, absPos, dontKeepPosition)
 	--save current point
-	local state = td.getState()
+	local state = this.tapeDrive.getState()
 	if state ~= "STOPPED" then
-		td.stop()
+		this.tapeDrive.stop()
 	end
-	local pos = td.getPosition()
+	local pos = this.tapeDrive.getPosition()
 
 	if absPos then
 		checkArg(2, absPos, "number")
-		tapeLib.seekToAbsolutlyPosition(absPos)
+		this.seekToAbsolutlyPosition(absPos)
 	end
 
-	local readV = td.read(length)
+	local readV = this.tapeDrive.read(length)
 
 	--restore old position
 	if not dontKeepPosition then
-		tapeLib.seekToAbsolutlyPosition(pos)
+		this.seekToAbsolutlyPosition(pos)
 	end
 	if state == "PLAYING" then
-		td.play()
+		this.tapeDrive.play()
 	end
 	return readV
 end
 
 ---@param length integer
 ---return table of bytes
-function tapeLib.readBytes(length, absPos)
-	return {string.byte(tapeLib.seekAndRead(length, absPos), 1, length)}
+function this.readBytes(length, absPos)
+	return {string.byte(this.seekAndRead(length, absPos), 1, length)}
 end
 
 ---@param absPos integer
 ---return table
-function tapeLib.readTable(length, absPos)
-	return ser.unserialize(tapeLib.seekAndRead(length, absPos))
+function this.readTable(length, absPos)
+	return ser.unserialize(this.seekAndRead(length, absPos))
 end
 
-function tapeLib.fullWipe()
-    tapeLib.seekToAbsolutlyPosition(0)
-    local tapeSize = math.ceil(td.getSize()/8192)
+function this.fullWipe()
+    this.seekToAbsolutlyPosition(0)
+    local tapeSize = math.ceil(this.tapeDrive.getSize()/8192)
     local filler = string.rep("\x00", 8192)
     for i = 1, tapeSize do
-        tapeLib.seekAndWrite(filler)
+        this.seekAndWrite(filler)
     end
 	os.sleep(0)
 end
 
 ---@param speed number
-function tapeLib.setSpeed(speed)
-	td.setSpeed(speed)
+function this.setSpeed(speed)
+	this.tapeDrive.setSpeed(speed)
 end
 
 ---@param fromPosition integer
 ---@param speed? number
-function tapeLib.play(fromPosition, speed)
-    tapeLib.seekToAbsolutlyPosition(fromPosition)
+function this.play(fromPosition, speed)
+    this.seekToAbsolutlyPosition(fromPosition)
 	if speed then
-		tapeLib.setSpeed(speed)
+		this.setSpeed(speed)
 	end
-    td.play()
+    this.tapeDrive.play()
 end
 
-return tapeLib
+return this
